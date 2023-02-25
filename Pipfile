@@ -6,6 +6,9 @@ name = "pypi"
 [packages]
 pyyaml = "*"
 pytest = "*"
+requests = "*"
+black = "*"
+install = "*"
 
 [dev-packages]
 pre-commit = "*"
