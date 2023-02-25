@@ -1,0 +1,6 @@
+.idea
+dist
+sdist
+*.pyc
+.DS_Store
+*.egg-info/
