@@ -4,6 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+pyyaml = "==5.4.1"
+daiquiri = "*"
+pytest = "*"
 
 [dev-packages]
 pre-commit = "*"
