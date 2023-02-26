@@ -1,12 +1,11 @@
+import logging
 import os
 import sys
-
-import yaml
-import logging
-import daiquiri
-from datetime import datetime
-from typing import Dict
 from enum import Enum
+from typing import *
+
+import daiquiri
+import yaml
 
 
 class UpdateType(Enum):
@@ -18,25 +17,34 @@ class UpdateType(Enum):
 class VersionUpdater:
     def __init__(
         self,
-        current_version,
-        new_version,
+        current_version: str,
+        new_version: str,
         update_type: UpdateType = None,
     ) -> None:
         self._current_version = VersionUpdater.load_yaml_file(current_version)
         self._new_version = VersionUpdater.load_yaml_file(new_version)
-        self._update_version(update_type)
+        self._update_current_version(update_type)
 
-    def _update_version(self, _type: UpdateType) -> None:
-        pass
+    def _update_current_version(self, _type: UpdateType) -> None:
+        logger.info("Starting version update")
+        for field in self._new_version.items():
+            self._add_missing_fields(field)
+
+    def _add_missing_fields(self, field: Tuple) -> None:
+        key, value = field
+        if key not in self._current_version:
+            logger.debug(f"Adding field [{key}] to the current version")
+            self._current_version[key] = value
+            return
 
     @staticmethod
     def load_yaml_file(yaml_file: str) -> Dict:
-        logger.debug(f"Loading yaml file {yaml_file}")
         try:
             with open(yaml_file, "r") as file:
+                logger.debug(f"YAML file is loaded - {yaml_file}")
                 return yaml.safe_load(file)
         except FileNotFoundError:
-            logger.error(f"Could not find YAML file {yaml_file}")
+            logger.error(f"Could not find YAML file - {yaml_file}")
             sys.exit(1)
 
 
@@ -47,7 +55,7 @@ def concatenate_string(text: str, delimiter=" ", camel_case: bool = True) -> str
 if __name__ == "__main__":
     daiquiri.setup(level=logging.DEBUG)
     logger = daiquiri.getLogger(__name__)
-    logger.info("Starting version updater")
+    logger.info("Started application to update current versions")
 
     try:
         current_conf = os.environ["CURRENT_VERSION"].strip()
@@ -63,3 +71,6 @@ if __name__ == "__main__":
         logger.debug(f"Found update type: {update.name}")
     except KeyError:
         update = UpdateType.NoUpdate
+
+    VersionUpdater(current_conf, new_conf, update)
+    logger.info("Current Version is updated successfully!")
