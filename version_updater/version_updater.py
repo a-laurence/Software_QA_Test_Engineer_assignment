@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from enum import Enum
+from collections import OrderedDict
 from typing import *
 
 import daiquiri
@@ -23,12 +24,16 @@ class VersionUpdater:
     ) -> None:
         self._current_version = VersionUpdater.load_yaml_file(current_version)
         self._new_version = VersionUpdater.load_yaml_file(new_version)
+        # for k, v in self._current_version.items():
+        #     print(k, ": ", v)
         self.update_current_version(update_type)
+        for k, v in self._current_version.items():
+            print(k, ": ", v)
 
     def update_current_version(self, _type: UpdateType) -> None:
         logger.info("Starting version update")
-        self.add_missing_fields()
         self.update_current_fields()
+        self.add_missing_fields()
 
     def add_missing_fields(self) -> None:
         logger.info("Adding new version fields that are not in the current version")
@@ -50,12 +55,6 @@ class VersionUpdater:
         except TypeError:
             return
 
-    def update_current_fields(self) -> None:
-        logger.info("Removing current version fields if not in the new version")
-        self._current_version = {
-            k: v for k, v in self._current_version.items() if k in self._new_version
-        }
-
     def field_in_file(self, _map, key) -> bool:
         if key in _map:
             return True
@@ -63,6 +62,27 @@ class VersionUpdater:
             if isinstance(v, dict):
                 if self.field_in_file(v, key):
                     return True
+
+    def update_current_fields(self) -> None:
+        logger.info("Removing current version fields if not in the new version")
+        self._current_version = OrderedDict(
+            {
+                k: self.inspect_remove(v, self._new_version[k])
+                for k, v in self._current_version.items()
+                if k in self._new_version
+            }
+        )
+
+    def inspect_remove(self, curr_field: Any, new_field: Any, result=None) -> Dict:
+        if not result:
+            result = dict()
+        for key, value in curr_field.items():
+            if key in new_field:
+                result[key] = value
+                continue
+            if isinstance(value, dict):
+                self.inspect_remove(value, curr_field[key], result)
+        return result
 
     def dump_yaml(self, out: str) -> None:
         logger.info(f"Dumping updated version")
