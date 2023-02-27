@@ -1,18 +1,18 @@
 import logging
 import os
 import sys
+import inspect
 from enum import Enum
-from collections import OrderedDict
 from typing import *
 
 import daiquiri
-from ruamel.yaml.main import round_trip_load as yaml_load, round_trip_load as yaml_dump
+import yaml
+from ruamel.yaml.main import round_trip_load as yaml_load
 
 
-class UpdateType(Enum):
-    ForceUpdate = 0
-    SimpleUpdate = 1
-    NoUpdate = 2
+class UpdateMode(Enum):
+    Brute = 0
+    Simple = 1
 
 
 class VersionUpdater:
@@ -20,108 +20,154 @@ class VersionUpdater:
         self,
         current_version: str,
         new_version: str,
-        update_type: UpdateType = None,
+        mode: UpdateMode = None,
     ) -> None:
         self._current_version = VersionUpdater.load_yaml_file(current_version)
-        self._new_version = VersionUpdater.load_yaml_file(new_version)
-        # for k, v in self._current_version.items():
-        #     print(k, ": ", v)
-        self.update_current_version(update_type)
-        for k, v in self._current_version.items():
-            print(k, ": ", v)
+        self._new_version = VersionUpdater.load_yaml_file(
+            new_version, is_new_version=True
+        )
+        self._update_current_version(mode)
+        self.write_update_to_file(current_version)
 
-    def update_current_version(self, _type: UpdateType) -> None:
-        logger.info("Starting version update")
-        self.update_current_fields()
-        self.add_missing_fields()
+    def _update_current_version(self, _type: UpdateMode) -> Any:
+        logger.info(f"Starting {_type.name} update")
+        if _type == UpdateMode.Brute:
+            self._update_current_fields()
+            self._add_missing_fields()
 
-    def add_missing_fields(self) -> None:
+        logger.info(
+            "Replacing the values of the current fields with the values from new_version"
+        )
+        self._current_version = {
+            k: self._update_field_value(self._current_version[k], v)
+            for k, v in self._new_version.items()
+            if k in self._current_version
+        }
+
+    def _update_field_value(self, curr_field: Any, new_field: Any) -> Any:
+        collection = dict()
+        try:
+            for field in curr_field:
+                if field in new_field:
+                    if isinstance(new_field[field], dict):
+                        collection[field] = self._update_field_value(
+                            curr_field[field], new_field[field]
+                        )
+                    else:
+                        collection[field] = new_field[field]
+                else:
+                    collection[field] = curr_field[field]
+        except TypeError:
+            return new_field
+        return collection
+
+    def _add_missing_fields(self) -> None:
         logger.info("Adding new version fields that are not in the current version")
         for key, value in self._new_version.items():
             if key not in self._current_version:
-                logger.debug(f"Added new field [{key}]")
+                logger.debug(f"Added new field - {key}")
                 self._current_version[key] = value
             else:
-                self.inspect_field(self._current_version[key], self._new_version[key])
+                self._inspect_add_collections(
+                    self._current_version[key], self._new_version[key]
+                )
 
-    def inspect_field(self, curr_field: Any, new_field: Any) -> None:
+    def _inspect_add_collections(self, curr_field: Any, new_field: Any) -> None:
         try:
             for key in new_field:
                 if key not in curr_field:
                     curr_field[key] = new_field[key]
                     continue
                 if isinstance(curr_field[key], dict):
-                    self.inspect_field(curr_field[key], new_field[key])
+                    self._inspect_add_collections(curr_field[key], new_field[key])
         except TypeError:
             return
 
-    def field_in_file(self, _map, key) -> bool:
+    def _field_in_file(self, _map: Dict, key: str) -> bool:
         if key in _map:
             return True
         for k, v in _map.items():
             if isinstance(v, dict):
-                if self.field_in_file(v, key):
+                if self._field_in_file(v, key):
                     return True
 
-    def update_current_fields(self) -> None:
+    def _update_current_fields(self) -> None:
         logger.info("Removing current version fields if not in the new version")
-        self._current_version = OrderedDict(
-            {
-                k: self.inspect_remove(v, self._new_version[k])
-                for k, v in self._current_version.items()
-                if k in self._new_version
-            }
-        )
+        for key in self._current_version.copy():
+            if key not in self._new_version.keys():
+                logger.debug(f"Removed field from current version - {key}")
+                del self._current_version[key]
+            else:
+                self._inspect_remove_collections(
+                    self._current_version[key], self._new_version[key]
+                )
 
-    def inspect_remove(self, curr_field: Any, new_field: Any, result=None) -> Dict:
-        if not result:
-            result = dict()
-        for key, value in curr_field.items():
-            if key in new_field:
-                result[key] = value
-                continue
-            if isinstance(value, dict):
-                self.inspect_remove(value, curr_field[key], result)
-        return result
-
-    def dump_yaml(self, out: str) -> None:
-        logger.info(f"Dumping updated version")
-        with open(out, "w") as f:
-            yaml_dump(self._current_version, f, preseve_quotes=True)
+    def _inspect_remove_collections(self, curr_field: Dict, new_field: Dict):
+        try:
+            for key in curr_field.copy():
+                if key not in new_field.keys():
+                    del curr_field[key]
+                else:
+                    if isinstance(curr_field[key], dict):
+                        self._inspect_remove_collections(
+                            curr_field[key], new_field[key]
+                        )
+        except AttributeError:
+            return
 
     @staticmethod
-    def load_yaml_file(yaml_file: str) -> Dict:
-        logger.info(f"Reading YAML file - {yaml_file}")
+    def load_yaml_file(file: str, is_new_version: bool = False) -> Dict:
+        logger.info(f"Reading YAML file - {file}")
+
+        if is_new_version and os.stat(file).st_size == 0:
+            logger.error(
+                f"Found an empty new version file! New version should not be empty"
+            )
+            sys.exit(1)
+
+        if not is_yaml_file(file):
+            logger.error("Invalid file type! Version file should be a YAML file")
+            sys.exit(1)
+
         try:
-            with open(yaml_file, "r") as f:
-                logger.debug(f"YAML file is loaded successfully")
-                return yaml_load(f)
+            with open(file, "r") as f:
+                logger.debug(f"YAML file is loaded successfully!")
+                return yaml.full_load(f)
         except FileNotFoundError:
-            logger.error(f"Could not find YAML file - {yaml_file}")
+            logger.error(f"Could not find YAML file - {file}")
             sys.exit(1)
 
 
-def concatenate(text: str, delimiter=" ", camel_case: bool = True) -> str:
-    return "".join([s.capitalize() if camel_case else s for s in text.split(delimiter)])
+def get_debug_level(level: str) -> int:
+    try:
+        return getattr(logging, level.strip().upper())
+    except AttributeError:
+        return 10
+
+
+def get_update_mode(_type: str) -> UpdateMode:
+    try:
+        return UpdateMode[_type.strip().capitalize()]
+    except KeyError:
+        return UpdateMode.Simple
+
+
+def is_yaml_file(file: str) -> bool:
+    return False
 
 
 if __name__ == "__main__":
-    daiquiri.setup(level=logging.DEBUG)
+    daiquiri.setup(level=get_debug_level(os.environ["DEBUG"]))
     logger = daiquiri.getLogger(__name__)
     logger.info("Started application to update current versions")
 
-    try:
-        current_conf = os.environ["CURRENT_VERSION"].strip()
-        new_conf = os.environ["NEW_VERSION"].strip()
-    except KeyError:
-        logger.error("Not enough YAML file given (required 2)")
-        sys.exit(1)
+    update_mode = get_update_mode(os.environ["UPDATE"])
+    logger.debug(f"Update Mode: {update_mode.name}")
 
-    try:
-        update = UpdateType[concatenate(os.environ["UPDATE"].strip().lstrip("--"), "-")]
-        logger.debug(f"Found update type: {update.name}")
-    except KeyError:
-        update = UpdateType.NoUpdate
+    VersionUpdater(
+        current_version=os.environ["CURRENT_VERSION"].strip(),
+        new_version=os.environ["NEW_VERSION"].strip(),
+        mode=update_mode,
+    )
 
-    VersionUpdater(current_conf, new_conf, update)
     logger.info("Current Version is updated successfully!")
