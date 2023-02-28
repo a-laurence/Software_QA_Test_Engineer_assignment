@@ -42,8 +42,8 @@ class VersionUpdater:
         try:
             self.update_remove_fields()
             self.update_add_fields()
-        except AttributeError:
-            self.logger.error("New version should not be empty!")
+        except Exception as e:
+            self.logger.error(e)
             sys.exit(1)
         return True
 
@@ -58,8 +58,8 @@ class VersionUpdater:
                 else v
                 for k, v in self._current_version.items()
             }
-        except AttributeError as e:
-            self.logger.error("New version should not be empty!")
+        except Exception as e:
+            self.logger.error(e)
             return False
         return True
 
@@ -109,7 +109,7 @@ class VersionUpdater:
         self.logger.info("Removing current version fields if not in the new version")
         for key in self._current_version.copy():
             if key not in self._new_version.keys():
-                logger.debug(f"Removed field from current version - {key}")
+                self.logger.debug(f"Removed field from current version - {key}")
                 del self._current_version[key]
             else:
                 self.logger.debug(
@@ -141,37 +141,19 @@ class VersionUpdater:
         except AttributeError:
             return
 
-    def in_field(self, _map: Dict, key: str) -> bool:
-        if key in _map:
+    def has_value(self, data: Tuple, _map: Dict) -> bool:
+        if data in _map.items():
             return True
-        for k, v in _map.items():
+        for _, v in _map.items():
             if isinstance(v, dict):
-                if self.in_field(v, key):
-                    return True
+                return self.has_value(data, v)
         return False
 
-    def contains_field(self, items: List[Dict]) -> bool:
+    def contains(self, items: List[Tuple]) -> bool:
         result = True
         for item in items:
-            result &= item
+            result &= self.has_value(item, self._current_version)
         return result
-
-
-def get_data_from_hash(data_hash: Dict, key: str) -> Optional:
-    try:
-        return data_hash[key]
-    except (KeyError, TypeError):
-        return None
-
-
-def get_data_list_from_hash(data_input: List[Dict], key: str, subkey=None) -> List:
-    if not subkey:
-        return list(
-            filter(None, [get_data_from_hash(data, key) for data in data_input])
-        )
-    return get_data_list_from_hash(
-        [get_data_from_hash(data, key) for data in data_input], subkey
-    )
 
 
 def get_update_mode(_type: str) -> UpdateMode:
