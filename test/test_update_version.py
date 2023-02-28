@@ -7,7 +7,7 @@ import yaml
 from version_updater.update_version import VersionUpdater
 
 
-class ExtensionVersionUpdater(VersionUpdater):
+class VersionUpdaterTest(VersionUpdater):
     def __init__(self, current_version, new_version, mode):
         super().__init__(current_version, new_version, mode)
 
@@ -43,10 +43,10 @@ class TestVersionUpdate:
         with test_file.open(mode="r") as f:
             return yaml.full_load(f)[test]
 
-    def get_test_event(self, mode: str = "default") -> ExtensionVersionUpdater:
+    def get_test_event(self, mode: str = "default") -> VersionUpdaterTest:
         test_name = self.get_test_name()
         test_data = self.get_test_data(test_name)
-        return ExtensionVersionUpdater(
+        return VersionUpdaterTest(
             test_data["current_version"], test_data["new_version"], mode
         )
 
