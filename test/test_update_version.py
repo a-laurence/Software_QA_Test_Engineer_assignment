@@ -74,8 +74,9 @@ def test_current_version_field_not_in_new_version():
 
 def test_simple_update_replace_value_only():
     """
-    Verify if it only replaces the values of the current_version fields with the values from new_version;
-    No fields are removed from or added to the current_version when mode is Simple update.
+    Verify when mode is Simple update:
+        - It only replaces the values of the current_version fields with the values from new_version;
+        - No fields are removed from or added to the current_version.
     :return:
     """
     current_version = load_yaml("test_data_1.yaml")
@@ -103,6 +104,32 @@ def test_simple_update_replace_value_only():
             ]
         )
     )
+
+
+def test_brute_update():
+    """
+    Verify when mode is Brute update:
+        - Removes fields in current_version if fields not in new_version.
+        - Adds fields to current_version if field are in new_version and not in current_version.
+        - Replaces values in current_version with the values in new_version.
+    :return:
+    """
+    current_version = load_yaml("test_data_1.yaml")
+    new_version = load_yaml("test_data_4.yaml")
+    event = FakeEvent(current_version, new_version, UpdateMode.Brute)
+    assert all(
+        [
+            ("auto_check", True),
+            (
+                "move",
+                {
+                    "max_error": [0.005, 0.005, 0.005],
+                    "max_speed": 0.15,
+                    "max_accel": 0.30,
+                },
+            ),
+        ]
+    ) and not all(event.contains([("origin_offset", [0.2, 0.1, 0.5])]))
 
 
 def load_yaml(file_name: str) -> dict:
