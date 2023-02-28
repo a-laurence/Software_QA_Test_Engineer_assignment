@@ -1,0 +1,11 @@
+#utf-8
+picking:
+  max_error:
+    bottle: [0.006, 0.006, 0.006] # [x,y,z] in meter
+  max_accel: 0.50 # in meter/second2
+
+move:
+  max_speed: 0.15 # in meter/second
+  max_accel: 0.10 # in meter/second2
+
+origin_offset: [0.3, 0.2, 0.6] # [x,y,z] in meter

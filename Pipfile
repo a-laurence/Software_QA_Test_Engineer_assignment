@@ -6,8 +6,9 @@ name = "pypi"
 [packages]
 pyyaml = "*"
 "ruamel.yaml" = "*"
-pytest = "*"
 daiquiri = "*"
+pathlib = "*"
+pytest = "<7.1"
 
 [dev-packages]
 pre-commit = "*"

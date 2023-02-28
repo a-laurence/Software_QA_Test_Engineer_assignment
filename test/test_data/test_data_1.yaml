@@ -1,0 +1,30 @@
+#utf-8
+picking:
+  max_error:
+    bottle: [0.006, 0.006, 0.006] # [x,y,z] in meter
+    can:    [0.002, 0.002, 0.002] # [x,y,z] in meter
+  max_speed: 0.20 # in meter/second
+  max_accel: 0.50 # in meter/second2
+
+placing:
+  max_error:
+    bottle: [0.001, 0.001, 0.001] # [x,y,z] in meter
+    can:    [0.001, 0.001, 0.001] # [x,y,z] in meter
+  max_speed: 0.10 # in meter/second
+  max_accel: 0.20 # in meter/second2
+
+move:
+  max_error: [0.025, 0.025, 0.025] # [x,y,z] in meter
+  max_speed: 0.15 # in meter/second
+  max_accel: 0.10 # in meter/second2
+
+origin_offset: [0.3, 0.2, 0.6] # [x,y,z] in meter
+auto_check: true
+
+error_msgs:
+  impossible_move:
+    jp: "ロボットは要求された動作を行うことができません"
+    en: "Robot cannot perform the requested move"
+  cannot_reach:
+    en: "New Message - Target not reached."
+    jp: "ターゲットに到達していない"

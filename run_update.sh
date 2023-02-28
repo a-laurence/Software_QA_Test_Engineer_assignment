@@ -48,4 +48,4 @@ export DEBUG
 logger "INFO - Starting Version Updater with given inputs:"
 echo -e " current_version: $1 \n new_version: $2 \n update: $UPDATE \n debug: $DEBUG"
 
-python3 -m pipenv run python version_updater/version_updater.py
+python3 -m pipenv run python version_updater/update_version.py
