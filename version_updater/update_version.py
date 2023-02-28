@@ -149,10 +149,11 @@ class VersionUpdater:
                 return self.has_value(data, v)
         return False
 
-    def contains(self, items: List[Tuple]) -> bool:
-        result = True
+    def contains(self, items: List[Tuple]) -> list:
+        result = []
         for item in items:
-            result &= self.has_value(item, self._current_version)
+            result.append(self.has_value(item, self._current_version))
+        print(result)
         return result
 
 
