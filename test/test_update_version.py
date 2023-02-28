@@ -1,7 +1,8 @@
-import pytest
 import inspect
-import yaml
 import pathlib
+
+import pytest
+import yaml
 
 from version_updater.update_version import VersionUpdater
 
@@ -147,4 +148,4 @@ class TestVersionUpdate:
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main(["-x", "--verbose"])
