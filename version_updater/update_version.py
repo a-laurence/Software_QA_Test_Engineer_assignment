@@ -144,21 +144,6 @@ class VersionUpdater:
         except AttributeError:
             return
 
-    def has_value(self, data: Tuple, _map: Dict) -> bool:
-        if data in _map.items():
-            return True
-        for _, v in _map.items():
-            if isinstance(v, dict):
-                return self.has_value(data, v)
-        return False
-
-    def contains(self, items: List[Tuple]) -> list:
-        result = []
-        for item in items:
-            result.append(self.has_value(item, self._current_version))
-        print(result)
-        return result
-
     def load(self, data) -> Dict:
         try:
             file = Path(data)
