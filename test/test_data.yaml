@@ -1,0 +1,115 @@
+#utf-8
+test_add_new_fields_not_in_current:
+  current_version:
+    picking:
+      max_speed: 0.20 # in meter/second
+      max_accel: 0.50 # in meter/second2
+
+    origin_offset: [0.2, 0.1, 0.5] # [x,y,z] in meter
+
+  new_version:
+    picking:
+      max_error:
+        bottle: [ 0.005, 0.005, 0.005 ] # [x,y,z] in meter
+        can: [ 0.003, 0.003, 0.003 ] # [x,y,z] in meter
+      max_speed: 0.20 # in meter/second
+      max_accel: 0.50 # in meter/second2
+
+    origin_offset: [ 0.2, 0.1, 0.5 ] # [x,y,z] in meter
+    auto_check: false
+
+test_new_version_in_current_version:
+  current_version:
+    picking:
+      max_error:
+        bottle: [ 0.005, 0.005, 0.005 ] # [x,y,z] in meter
+        can: [ 0.003, 0.003, 0.003 ] # [x,y,z] in meter
+      max_speed: 0.20 # in meter/second
+      max_accel: 0.50 # in meter/second2
+
+    origin_offset: [ 0.2, 0.1, 0.5 ] # [x,y,z] in meter
+    auto_check: false
+
+  new_version:
+    picking:
+      max_error:
+        bottle: [ 0.005, 0.005, 0.005 ] # [x,y,z] in meter
+        can: [ 0.003, 0.003, 0.003 ] # [x,y,z] in meter
+      max_speed: 0.10 # in meter/second
+      max_accel: 0.50 # in meter/second2
+
+    origin_offset: [ 0.3, 0.2, 0.5 ] # [x,y,z] in meter
+    auto_check: true
+
+test_current_version_field_not_in_new_version:
+  current_version:
+    picking:
+      max_error:
+        bottle: [ 0.005, 0.005, 0.005 ] # [x,y,z] in meter
+        can: [ 0.003, 0.003, 0.003 ] # [x,y,z] in meter
+      max_speed: 0.20 # in meter/second
+      max_accel: 0.50 # in meter/second2
+
+    origin_offset: [ 0.2, 0.1, 0.5 ] # [x,y,z] in meter
+    auto_check: false
+
+  new_version:
+    picking:
+      max_speed: 0.20 # in meter/second
+      max_accel: 0.50 # in meter/second2
+
+    origin_offset: [ 0.2, 0.1, 0.5 ] # [x,y,z] in meter
+
+test_simple_update_replace_value_only:
+  current_version:
+    picking:
+      max_error:
+        bottle: [ 0.005, 0.005, 0.005 ] # [x,y,z] in meter
+        can: [ 0.003, 0.003, 0.003 ] # [x,y,z] in meter
+      max_speed: 0.20 # in meter/second
+      max_accel: 0.50 # in meter/second2
+
+    origin_offset: [ 0.2, 0.1, 0.5 ] # [x,y,z] in meter
+    auto_check: false
+
+  new_version:
+    picking:
+      max_error:
+        bottle: [ 0.005, 0.005, 0.005 ] # [x,y,z] in meter
+        can: [ 0.003, 0.003, 0.003 ] # [x,y,z] in meter
+      max_speed: 0.25 # in meter/second
+      max_accel: 0.35# in meter/second2
+
+    move:
+      max_error: [ 0.005, 0.005, 0.005 ] # [x,y,z] in meter
+      max_speed: 0.15 # in meter/second
+      max_accel: 0.30 # in meter/second2
+
+    auto_check: true
+
+test_brute_update:
+  current_version:
+    picking:
+      max_error:
+        bottle: [ 0.005, 0.005, 0.005 ] # [x,y,z] in meter
+        can: [ 0.003, 0.003, 0.003 ] # [x,y,z] in meter
+      max_speed: 0.20 # in meter/second
+      max_accel: 0.50 # in meter/second2
+
+    origin_offset: [ 0.2, 0.1, 0.5 ] # [x,y,z] in meter
+    auto_check: false
+
+  new_version:
+    picking:
+      max_error:
+        bottle: [ 0.005, 0.005, 0.005 ] # [x,y,z] in meter
+        can: [ 0.003, 0.003, 0.003 ] # [x,y,z] in meter
+      max_speed: 0.25 # in meter/second
+      max_accel: 0.35# in meter/second2
+
+    move:
+      max_error: [ 0.005, 0.005, 0.005 ] # [x,y,z] in meter
+      max_speed: 0.15 # in meter/second
+      max_accel: 0.30 # in meter/second2
+
+    auto_check: true

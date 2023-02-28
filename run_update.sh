@@ -31,9 +31,9 @@ DEBUG=""
 for (( i=3; i<=$#; i++ )); do
   j=$((i+1))
   case "${!i}" in
-    "-u")
+    "--mode")
       UPDATE="${!j}";;
-    "-d")
+    "--debug-level")
       DEBUG="${!j}";;
     *)
       ;;

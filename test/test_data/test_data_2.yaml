@@ -1,6 +1,0 @@
-#utf-8
-picking:
-  max_speed: 0.20 # in meter/second
-  max_accel: 0.50 # in meter/second2
-
-origin_offset: [0.2, 0.1, 0.5] # [x,y,z] in meter

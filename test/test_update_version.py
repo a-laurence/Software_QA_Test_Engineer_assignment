@@ -1,14 +1,31 @@
+import pytest
+import inspect
+import yaml
 import pathlib
 
-import pytest
-import yaml
-
-from version_updater.update_version import VersionUpdater, UpdateMode
+from version_updater.update_version import VersionUpdater
 
 
 class FakeEvent(VersionUpdater):
-    def __init__(self, current_version, new_version, mode=UpdateMode.Default):
+    def __init__(self, current_version, new_version, mode):
         super().__init__(current_version, new_version, mode)
+
+
+def get_test_name():
+    return inspect.stack()[2][3]
+
+
+def get_test_data(test: str) -> tuple:
+    test_file = pathlib.Path().cwd() / "test/test_data.yaml"
+    with test_file.open(mode="r") as f:
+        test_data = yaml.full_load(f)
+    return test_data[test]["current_version"], test_data[test]["new_version"]
+
+
+def get_fake_event(mode: str = "default") -> FakeEvent:
+    test = get_test_name()
+    curr, new = get_test_data(test)
+    return FakeEvent(curr, new, mode)
 
 
 def test_add_new_fields_not_in_current():
@@ -16,9 +33,7 @@ def test_add_new_fields_not_in_current():
     Verify if fields in new_version and its values are added to current_version if fields not in current_version.
     :return:
     """
-    current_version = load_yaml("test_data_2.yaml")
-    new_version = load_yaml("test_data_1.yaml")
-    event = FakeEvent(current_version, new_version)
+    event = get_fake_event()
     assert all(
         event.contains(
             [
@@ -37,9 +52,7 @@ def test_new_version_in_current_version():
     Verify if values in current_version are kept when fields are both in new_version and current_version.
     :return:
     """
-    current_version = load_yaml("test_data_1.yaml")
-    new_version = load_yaml("test_data_3.yaml")
-    event = FakeEvent(current_version, new_version)
+    event = get_fake_event()
     assert all(
         event.contains(
             [
@@ -56,9 +69,7 @@ def test_current_version_field_not_in_new_version():
     Verify if current_version fields are removed when fields are not in new_version.
     :return:
     """
-    current_version = load_yaml("test_data_1.yaml")
-    new_version = load_yaml("test_data_2.yaml")
-    event = FakeEvent(current_version, new_version)
+    event = get_fake_event()
     assert not any(
         event.contains(
             [
@@ -79,9 +90,7 @@ def test_simple_update_replace_value_only():
         - No fields are removed from or added to the current_version.
     :return:
     """
-    current_version = load_yaml("test_data_1.yaml")
-    new_version = load_yaml("test_data_4.yaml")
-    event = FakeEvent(current_version, new_version, UpdateMode.Simple)
+    event = get_fake_event(mode="simple")
     assert all(
         event.contains(
             [
@@ -114,9 +123,7 @@ def test_brute_update():
         - Replaces values in current_version with the values in new_version.
     :return:
     """
-    current_version = load_yaml("test_data_1.yaml")
-    new_version = load_yaml("test_data_4.yaml")
-    event = FakeEvent(current_version, new_version, UpdateMode.Brute)
+    event = get_fake_event(mode="brute")
     assert all(
         [
             ("auto_check", True),
@@ -130,12 +137,6 @@ def test_brute_update():
             ),
         ]
     ) and not all(event.contains([("origin_offset", [0.2, 0.1, 0.5])]))
-
-
-def load_yaml(file_name: str) -> dict:
-    file = pathlib.Path().cwd() / "test" / "test_data" / file_name
-    with file.open(mode="r") as fid:
-        return yaml.full_load(fid)
 
 
 if __name__ == "__main__":

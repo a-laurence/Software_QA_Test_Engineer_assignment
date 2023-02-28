@@ -12,28 +12,31 @@ from version_updater.logger import logger
 class VersionUpdater:
     def __init__(
         self,
-        current_version: Dict,
-        new_version: Dict,
-        mode: UpdateMode = None,
+        current_version: str,
+        new_version: str,
+        mode: str = "Debug",
         log=logger(),
     ) -> None:
-        self._current_version = current_version
-        self._new_version = new_version
         self.logger = log
-
         self.logger.info("Started Version Updater app")
 
-        if self.update_current_version(mode):
+        self._current_version = self.load(current_version)
+        self._new_version = self.load(new_version)
+
+        self._mode = self.mode(mode)
+        self.logger.debug(f"Update Mode: {self._mode.name}")
+
+        if self.update_current_version():
             self.logger.info("Updated versions successfully!")
             # self.write_update_to_file(current_version)
         else:
             self.logger.info("Version update is unsuccessful!")
 
-    def update_current_version(self, mode: UpdateMode) -> bool:
-        self.logger.info(f"Starting update, mode={mode.name}")
-        if mode == UpdateMode.Simple:
+    def update_current_version(self) -> bool:
+        self.logger.info(f"Starting {self._mode.name} Update")
+        if self._mode == UpdateMode.Simple:
             return self.simple_update()
-        elif mode == UpdateMode.Brute:
+        elif self._mode == UpdateMode.Brute:
             return self.brute_update()
         else:
             return self.default_update()
@@ -156,33 +159,42 @@ class VersionUpdater:
         print(result)
         return result
 
+    def load(self, data) -> Dict:
+        try:
+            file = Path(data)
+        except TypeError:
+            if isinstance(data, dict):
+                self.logger.debug(f"Found input data: {data}")
+                return data
+            self.logger.error("TypeError: expected str, bytes or os.PathLike object")
+            sys.exit(1)
 
-def get_update_mode(_type: str) -> UpdateMode:
-    try:
-        return UpdateMode[_type.strip().capitalize()]
-    except KeyError:
-        return UpdateMode.Default
+        if file.suffix != ".yaml":
+            self.logger.error("Invalid file type! Given should be a YAML file")
+            sys.exit(1)
 
+        self.logger.info(f"Loading YAML file - {data}")
 
-def load_yaml(file_name: str) -> Dict:
-    file = Path(file_name)
-    if file.suffix != ".yaml":
-        logger.error("Invalid file type! File should be .yaml")
-        sys.exit(1)
-    try:
-        with Path(file).open(mode="r") as fid:
-            return yaml.full_load(fid)
-    except FileNotFoundError:
-        logger.error("Could not find YAML file!")
-        sys.exit(1)
+        try:
+            with file.open(mode="r") as f:
+                self.logger.debug("YAML file loaded successfully!")
+                return yaml.full_load(f)
+        except FileNotFoundError:
+            self.logger.error(f"Could not find YAML file - {data}")
+            sys.exit(1)
+
+    def mode(self, mode: str) -> UpdateMode:
+        try:
+            return UpdateMode[mode.strip().capitalize()]
+        except KeyError:
+            self.logger.error("Setting to default mode")
+            return UpdateMode.Default
 
 
 if __name__ == "__main__":
-    curr = load_yaml(os.environ["CURRENT_VERSION"].strip())
-    new = load_yaml(os.environ["NEW_VERSION"].strip())
-    update_mode = get_update_mode(os.environ["UPDATE"])
-    logger = logger(os.environ["DEBUG"].strip().upper())
-
-    logger.debug(f"Update Mode: {update_mode.name}")
-    VersionUpdater(current_version=curr, new_version=new, mode=update_mode, log=logger)
-    logger.info("Version Updater app is closed!")
+    VersionUpdater(
+        current_version=os.environ["CURRENT_VERSION"].strip(),
+        new_version=os.environ["NEW_VERSION"].strip(),
+        mode=os.environ["UPDATE"],
+        log=logger(os.environ["DEBUG"].strip().upper()),
+    )
