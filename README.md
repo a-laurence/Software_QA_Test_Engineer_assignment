@@ -37,7 +37,7 @@ and `new_version`, and updates `current_version`.
 - Replaces the values in `current_version` if corresponding fields are in `new_version`.
 
 ## Usage
-1. Start the program by running the `run_updtae.sh` and pass two YAML files as arguments as shown below:
+1. Start the program by running the `run_update.sh` and pass two YAML files as arguments as shown below:
 ```
 ./run_update <current_version> <new_version>
 ```
