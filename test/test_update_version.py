@@ -8,7 +8,7 @@ from version_updater.update_version import VersionUpdater
 
 
 class VUExtension(VersionUpdater):
-    def __init__(self, current_version, new_version, mode):
+    def __init__(self, current_version, new_version, mode="default"):
         super().__init__(current_version, new_version, mode)
 
     def has_value(self, data: tuple, _map: dict) -> bool:
@@ -143,6 +143,11 @@ class TestVersionUpdate:
                 ),
             ]
         ) and not event.contains_all([("origin_offset", [0.2, 0.1, 0.5])])
+
+    def test_empty_new_version(self):
+        with pytest.raises(Exception) as exc_info:
+            VUExtension({"max_accel": 0.30}, {})
+        assert str(exc_info.value) == "new_version should not be empty"
 
 
 if __name__ == "__main__":

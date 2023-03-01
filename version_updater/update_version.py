@@ -35,6 +35,8 @@ class VersionUpdater:
             self.logger.info("Could not complete version update")
 
     def update_current_version(self) -> bool:
+        if not self._new_version:
+            raise Exception("new_version should not be empty")
         self.logger.info(f"Starting {self._mode.name} Update")
         if self._mode == UpdateMode.Simple:
             return self.simple_update()
