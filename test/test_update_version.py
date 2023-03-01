@@ -153,6 +153,10 @@ class TestVersionUpdate:
         event = VUExtension({}, {"max_accel": 0.30}, "simple")
         assert not event.contains_all([("max_accel", 0.30)])
 
+    def test_empty_current_version_default_update(self):
+        event = VUExtension({}, {"origin_offset": [0.2, 0.1, 0.5]})
+        assert event.contains_all([("origin_offset", [0.2, 0.1, 0.5])])
+
 
 if __name__ == "__main__":
     pytest.main(["-x", "--verbose"])
