@@ -26,7 +26,7 @@ class VUExtension(VersionUpdater):
         return result
 
     def contains_any(self, expected: list[tuple]) -> bool:
-        result = True
+        result = False
         for each in expected:
             result |= self.has_value(each, self._current_version)
         return result
@@ -84,7 +84,7 @@ class TestVersionUpdate:
         :return:
         """
         event = self.get_test_event()
-        assert not event.contains_all(
+        assert not event.contains_any(
             [
                 ("auto_check", False),
                 (
@@ -92,7 +92,7 @@ class TestVersionUpdate:
                     {"bottle": [0.005, 0.005, 0.005], "can": [0.003, 0.003, 0.003]},
                 ),
             ]
-        )
+        ) and event.contains_all([("origin_offset", [0.2, 0.1, 0.5])])
 
     def test_simple_update_replace_value_only(self):
         """

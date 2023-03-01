@@ -1,28 +1,34 @@
 # Software QA Test Engineer Assignment
 
-## Pre-requisite
-python 3.9
-```
+## Context:
 
-```
+As a Software Test Engineer, you will create test scripts to assess the functional
+quality of robot components. That requires you to have the ability to evaluate a
+feature to design relevant tests.
 
-## About
-This is an application that takes two YAML files input, `current_version`
-and `new_version`, and updates `current_version`.
+This assignment aims to evaluate some of the following technical requirements:
+- Coding skill
+- Testing skill
 
-### Update Modes
-#### Default Update
-- Adds `new_version` field and its value to `current_version` if field not in `current_version`.
-- Keeps the value from `current_version` if `new_version` field is in `current_version`.
-- Removes `current_version` field if field not in `new_version`.
-#### Simple Update
-- Only replaces the values in `current_version` if corresponding fields are in `new_version`.
-#### Brute Update
-- Adds `new_version` field and its value to `current_version` if field not in `current_version`.
-- Removes `current_version` field if field not in `new_version`.
-- Replaces the values in `current_version` if corresponding fields are in `new_version`.
 
-## Usage
+## Assignment
+
+Create an application that takes as an input two YAML files, `current_version`
+and `new_version`, and updates `current_version` as follows:
+- If a field of `new_version` is not present in `current_version`, it should be
+  added to `current_version` with its value set to the value from `new_version`.
+- If a field of `new_version` is present in `current_version`, it should keep the
+  value from `current_version`.
+- If a field of `current_version` is not present in `new_version`, it should be
+  removed from `current_version`.
+
+In addition, the user can use optional arguments to:
+- Force the update of `current_version` by only replacing the values of the
+  currently existing fields with the values from `new_version`
+- Force the update of `current_version` by replacing the values of the currently
+  existing fields with the values from `new_version` and adding or removing the
+  fields according  to the requirement mentioned above.
+
 Your application must be compatible with the provided `config.yaml`. We will use
 similar config files for the evaluation. You are free to create additional yaml
 files for your development or tests.
@@ -76,4 +82,3 @@ Your work will be evaluated according to the following criterias (list non-exhau
 > We know that it is possible to create a multitude of tests of a single
 > application. Focus on the essential tests that you will find relevant and avoid
 > testing strange corner cases.
-

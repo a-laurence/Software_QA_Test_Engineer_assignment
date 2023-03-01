@@ -2,9 +2,8 @@ import os
 import sys
 from pathlib import Path
 from typing import *
-
-import yaml
-
+import shutil
+import ruamel.yaml
 from version_updater.constants import UpdateMode
 from version_updater.logger import logger
 
@@ -14,23 +13,25 @@ class VersionUpdater:
         self,
         current_version: str,
         new_version: str,
-        mode: str = "Debug",
+        mode: str = "Default",
         log=logger(),
     ) -> None:
         self.logger = log
+        self._yaml = ruamel.yaml.YAML()
+        self._yaml.preserve_quotes = True
         self.logger.info("Started Version Updater app")
 
         self._current_version = self.load(current_version)
         self._new_version = self.load(new_version)
-
         self._mode = self.mode(mode)
-        self.logger.debug(f"Update Mode: {self._mode.name}")
+        self.logger.debug(f"Update mode is set to {self._mode.name}")
 
         if self.update_current_version():
-            self.logger.info("Updated versions successfully!")
-            # self.write_update_to_file(current_version)
+            self.logger.info("Successfully updated the current version")
+            if self.dump(current_version):
+                self.logger.debug("Successfully dumped current version")
         else:
-            self.logger.info("Version update is unsuccessful!")
+            self.logger.info("Could not complete version update")
 
     def update_current_version(self) -> bool:
         self.logger.info(f"Starting {self._mode.name} Update")
@@ -51,19 +52,12 @@ class VersionUpdater:
         return True
 
     def simple_update(self) -> bool:
-        self.logger.info(
-            "Replacing the values of the current fields with the values from new_version"
-        )
-        try:
-            self._current_version = {
-                k: self.populate_new_values(v, self._new_version[k])
-                if k in self._new_version
-                else v
-                for k, v in self._current_version.items()
-            }
-        except Exception as e:
-            self.logger.error(e)
-            return False
+        for k, v in self._current_version.copy().items():
+            if k in self._new_version:
+                self._current_version[k] = self.populate_new_values(
+                    v, self._new_version[k]
+                )
+                self.logger.debug(f"Updated the value for {k}")
         return True
 
     def brute_update(self) -> bool:
@@ -147,11 +141,11 @@ class VersionUpdater:
     def load(self, data) -> Dict:
         try:
             file = Path(data)
-        except TypeError:
+        except TypeError as e:
             if isinstance(data, dict):
                 self.logger.debug(f"Found input data: {data}")
                 return data
-            self.logger.error("TypeError: expected str, bytes or os.PathLike object")
+            self.logger.error(e)
             sys.exit(1)
 
         if file.suffix != ".yaml":
@@ -162,17 +156,30 @@ class VersionUpdater:
 
         try:
             with file.open(mode="r") as f:
-                self.logger.debug("YAML file loaded successfully!")
-                return yaml.full_load(f)
+                self.logger.debug("Successfully loaded YAML file")
+                return self._yaml.load(f)
         except FileNotFoundError:
             self.logger.error(f"Could not find YAML file - {data}")
             sys.exit(1)
 
-    def mode(self, mode: str) -> UpdateMode:
+    def dump(self, _o) -> bool:
+        if isinstance(_o, dict):
+            self.logger.debug(f"Maybe a test event with given data: {_o}")
+            return False
+
+        tmp = Path().cwd() / "out"
+        tmp.mkdir(parents=True, exist_ok=True)
+        out = tmp / f"updated_{_o}"
+        self.logger.debug("Created an out file for dumping updated versions")
+
+        self._yaml.dump(self._current_version, out)
+        return True
+
+    @staticmethod
+    def mode(mode: str) -> UpdateMode:
         try:
             return UpdateMode[mode.strip().capitalize()]
         except KeyError:
-            self.logger.error("Setting to default mode")
             return UpdateMode.Default
 
 
