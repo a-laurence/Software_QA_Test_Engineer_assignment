@@ -157,6 +157,14 @@ class TestVersionUpdate:
         event = VUExtension({}, {"origin_offset": [0.2, 0.1, 0.5]})
         assert event.contains_all([("origin_offset", [0.2, 0.1, 0.5])])
 
+    def test_empty_current_version_brute_update(self):
+        event = VUExtension(
+            {}, {"origin_offset": [0.2, 0.1, 0.5], "auto_check": False}, "brute"
+        )
+        assert event.contains_all(
+            [("origin_offset", [0.2, 0.1, 0.5]), ("auto_check", False)]
+        )
+
 
 if __name__ == "__main__":
     pytest.main(["-x", "--verbose"])
