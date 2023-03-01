@@ -58,7 +58,9 @@ class VersionUpdater:
                 self._current_version[k] = self.populate_new_values(
                     v, self._new_version[k]
                 )
-                self.logger.debug(f"Updated the value for {k}")
+                self.logger.debug(
+                    f"Updated the value for {k}. New value = {self._current_version[k]}"
+                )
         return True
 
     def brute_update(self) -> bool:
@@ -153,7 +155,7 @@ class VersionUpdater:
             self.logger.error("Invalid file type! Given should be a YAML file")
             sys.exit(1)
 
-        self.logger.info(f"Loading YAML file - {data}")
+        self.logger.info(f"Loading YAML file <-- {data}")
 
         try:
             with file.open(mode="r") as f:
@@ -171,7 +173,9 @@ class VersionUpdater:
         tmp = Path().cwd() / "out"
         tmp.mkdir(parents=True, exist_ok=True)
         out = tmp / f"updated_{_o}"
+
         self.logger.debug("Created an out file for dumping updated versions")
+        self.logger.info(f"Dumping updated version --> {out}")
 
         self._yaml.dump(self._current_version, out)
         return True
