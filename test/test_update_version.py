@@ -149,6 +149,10 @@ class TestVersionUpdate:
             VUExtension({"max_accel": 0.30}, {})
         assert str(exc_info.value) == "new_version should not be empty"
 
+    def test_empty_current_version_simple_update(self):
+        event = VUExtension({}, {"max_accel": 0.30}, "simple")
+        assert not event.contains_all([("max_accel", 0.30)])
+
 
 if __name__ == "__main__":
     pytest.main(["-x", "--verbose"])
