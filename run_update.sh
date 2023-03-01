@@ -33,7 +33,7 @@ for (( i=3; i<=$#; i++ )); do
   case "${!i}" in
     "--mode")
       UPDATE="${!j}";;
-    "--debug-level")
+    "--log-level")
       DEBUG="${!j}";;
     *)
       ;;

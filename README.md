@@ -1,9 +1,23 @@
 # Software QA Test Engineer Assignment
 
 ## Pre-requisite
-python 3.9
 ```
+# Requires
+python 3.9
 
+# Packages
+pyyaml
+ruamel.yaml
+daiquiri
+pathlib
+pytest<7.1
+
+# Dev Packages
+pre-commit
+black
+
+# Packaging Tool
+pipenv
 ```
 
 ## About
@@ -11,69 +25,54 @@ This is an application that takes two YAML files input, `current_version`
 and `new_version`, and updates `current_version`.
 
 ### Update Modes
-#### Default Update
-- Adds `new_version` field and its value to `current_version` if field not in `current_version`.
+#### 1. Default Update
+- Adds `new_version` field-value to `current_version` if field not in `current_version`.
 - Keeps the value from `current_version` if `new_version` field is in `current_version`.
 - Removes `current_version` field if field not in `new_version`.
-#### Simple Update
+#### 2. Simple Update
 - Only replaces the values in `current_version` if corresponding fields are in `new_version`.
-#### Brute Update
-- Adds `new_version` field and its value to `current_version` if field not in `current_version`.
+#### 3. Brute Update
+- Adds `new_version` field-value to `current_version` if field not in `current_version`.
 - Removes `current_version` field if field not in `new_version`.
 - Replaces the values in `current_version` if corresponding fields are in `new_version`.
 
 ## Usage
-Your application must be compatible with the provided `config.yaml`. We will use
-similar config files for the evaluation. You are free to create additional yaml
-files for your development or tests.
+1. Start the program by running the `run_updtae.sh` and pass two YAML files as arguments as shown below:
+```
+./run_update <current_version> <new_version>
+```
 
-Your application must provide feedback to the user via a logger. The user can
-change the logging level by providing optional arguments. The error messages must
-be explicit enough for a non-developer to understand the problem.
-
-In addition, you must provide tests that will assess the correct behaviour of the
-application. Your tests should, at least, verify all the requirements listed above.
-
-Finally, you must provide a way to install the application and all its dependencies
-and the documentation explaining how to use it.
-
-Coding requirement:
-- You must use Python (3.8 or more recent) for both the application and the tests
-- You must use a test framework such as [Pytest](https://docs.pytest.org/)
-- The documentation must be provide as a README
-
-Note:
-- You can use any yaml library such as [PyYaml](https://pyyaml.org/wiki/PyYAML)
-- You can use any logging library such as [daiquiri](https://daiquiri.readthedocs.io/en/latest/)
+To start the program with optional arguments, pass optional arguments with flag. `--mode` for update mode and `--log-level` for logging level:
+```
+./run_update <current_version> <new_version> --mode <update_mode> --log-level <level>
 
 
-We expected the test to takes about 2~4 hours to complete the assignment.
+e.g.
+./run_update current_version.yaml new_version.yaml --mode simple --log-level debug
+```
+If no arguments are passed, default are:
+- Update Mode: Default
+- Logging Level: DEBUG
+2. Check result in the `out` folder.
 
+## Testing
+1. Start the test by running the `run_test.sh`
+2. Test data and test software are located in the `test` directory.
+3. The `VUExtenstion` class provides support in evaluating the test.<br>`contains_all()` to assert all expected output.<br>`contains_any()` to assert any of the expected output.
+4. Test data ara saved in `test_data.yaml` file. Add test data in a map format where test_name is the key. Below is an example:
+```
+# format
+test_name:
+  current_version:
+    max_speed: 0.20
+  new_version:
+    key: value
 
-## How to submit
+# example
+test_brute_update:
+  current_version:
+    max_speed: 0.20
 
-Your work needs to be available on a public repository. We should be able to
-install your application, its dependency, and we can run your application from a
-terminal.
-
-
-##  Evaluation
-
-We will clone the repository and install the application in our test environment.
-After analyzing your code, we will run your provided tests and the tests we have
-prepared.
-
-Your work will be evaluated according to the following criterias (list non-exhaustive):
-- The quality of your code, its clarity, its explicitness, and its structure
-- Does the applications meet all the requirements
-- The test coverage
-- How easy the install of the application is
-- How user-friendly is the application to use
-- The quality of the documentation
-
-> _Important note regarding the test coverage_:
->
-> We know that it is possible to create a multitude of tests of a single
-> application. Focus on the essential tests that you will find relevant and avoid
-> testing strange corner cases.
-
+  new_version:
+    max_speed: 0.15
+```
