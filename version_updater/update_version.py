@@ -57,12 +57,14 @@ class VersionUpdater:
     def simple_update(self) -> bool:
         for k, v in self._current_version.copy().items():
             if k in self._new_version:
-                self._current_version[k] = self.populate_new_values(
-                    v, self._new_version[k]
-                )
-                self.logger.debug(
-                    f"Updated the value for {k}. New value = {self._current_version[k]}"
-                )
+                new_value = self.populate_new_values(v, self._new_version[k])
+                if new_value != self._current_version[k]:
+                    self._current_version[k] = new_value
+                    self.logger.debug(f"Updated the value for {k} --> {new_value}")
+                else:
+                    self.logger.debug(
+                        f"No update - both versions have the same value for {k} --> {new_value}"
+                    )
         return True
 
     def brute_update(self) -> bool:
