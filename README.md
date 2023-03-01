@@ -38,7 +38,7 @@ and `new_version`, and updates `current_version`.
 -
 ## Usage
 1. Start the program by running the `run_update.sh` and pass two YAML files as arguments.
-`run_update.sh` is a wrapper script, it the creates virtual environment, parse the arguments, and start the app once executed.
+`run_update.sh` is a wrapper script, it creates the virtual environment, parse the arguments, and start the app once executed.
 Optional arguments should be passed with flags. `--mode` to set Update Mode, and `--log-level` to set logging level.
 When there are no optional arguments, defaults are `DEBUG` for logging level and `default` for update mode.<br><br>
 Example is shown below:
