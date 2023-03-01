@@ -71,7 +71,7 @@ class VersionUpdater:
         return True
 
     def populate_new_values(self, curr_field: Any, new_field: Any) -> Any:
-        collection = dict()
+        collection = ruamel.yaml.comments.CommentedMap()
         try:
             for field in curr_field:
                 if field in new_field:
