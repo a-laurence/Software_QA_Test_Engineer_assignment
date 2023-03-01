@@ -1,9 +1,10 @@
 import os
+import ruamel.yaml
+import shutil
 import sys
 from pathlib import Path
 from typing import *
-import shutil
-import ruamel.yaml
+
 from version_updater.constants import UpdateMode
 from version_updater.logger import logger
 

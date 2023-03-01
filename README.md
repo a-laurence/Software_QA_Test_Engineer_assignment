@@ -65,6 +65,7 @@ If no arguments are passed, default are:
 test_name:
   current_version:
     max_speed: 0.20
+
   new_version:
     key: value
 
